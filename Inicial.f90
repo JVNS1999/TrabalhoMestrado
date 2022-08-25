@@ -46,7 +46,9 @@ Subroutine CalcCampo()
     Write(20,*) Ns
     Do i = 1,Ns
         Do j = 1, Ns - 1 ! Não tenho interação com o mesmo spin por isso o -1.
-            Write(20,*) Aij(i,j)
+            If (i .ne. j) then 
+                Write(20,*) Aij(i,j)
+            End If    
         End Do
     End Do
     Close(20)        
