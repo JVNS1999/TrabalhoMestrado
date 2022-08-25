@@ -26,7 +26,7 @@ Subroutine CalcCampo()
     Integer :: I , J
     Real(8) :: dx, dy, dist, E1, E2, Eij
     Real(8), Dimension(:,:),allocatable :: Aij
-    Allocate(Aij(Ns,Ns - 1))
+    Allocate(Aij(Ns,Ns))
     Do I = 1,Ns
         Do J = 1,Ns
             If (I .ne. J) then
@@ -39,16 +39,18 @@ Subroutine CalcCampo()
                 E2 = -3.d0*(mx(i)*dx + my(i)*dy)*(mx(j)*dx + my(j)*dy)
                 Eij = (E1 + E2)/dist**3
                 Aij(i,j) = Eij ! Salvando numa matriz os valores de interação.
-            End If
+            Else
+                Aij(i,j) = 0.0d0
+            End if
         End Do        
     End Do
     Open(20, file = 'Aij.dat')
     Write(20,*) Ns
     Do i = 1,Ns
-        Do j = 1, Ns - 1 ! Não tenho interação com o mesmo spin por isso o -1.
-            If (i .ne. j) then 
-                Write(20,*) Aij(i,j)
-            End If    
+        Do j = 1, Ns! Não tenho interação com o mesmo spin por isso o -1.
+            !If (i .ne. j) then 
+            Write(20,*) Aij(i,j)
+            !End If    
         End Do
     End Do
     Close(20)        
