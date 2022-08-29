@@ -1,6 +1,6 @@
 Module Variaveis
     Implicit None
-    Integer :: Ns
+    Integer :: Ns, Nterma
     Integer, Dimension(:), allocatable :: S
     Real(8), Dimension(:,:), allocatable :: Aij
     Real(8), Dimension(:),allocatable :: Bi, Ei
@@ -41,6 +41,17 @@ Subroutine MC()
     Implicit None
 
 End Subroutine MC
+
+Subroutine Termaliza()
+    Use Variaveis
+    Implicit None
+    Integer :: i
+    Do i = 1,Nterma
+        Call Metropolis
+    End Do
+    Return    
+End Subroutine 
+
 
 Subroutine Inicia_BI()
     Use Variaveis
@@ -91,7 +102,7 @@ Subroutine Config()
     Do i = 1,Ns
         Write(4,*)Rx(i),Ry(i),Mx(i)*S(i),My(i)*S(i), atan2(My(i)*S(i),Mx(i)*S(i)) ! ãngulo do spin para colorir.
     End Do
-    Close(4)
+    !Close(4)
 End Subroutine Config
 
 Program Main
@@ -101,10 +112,11 @@ Program Main
     Call Srand(Seed)
     Call LerAij
     Call Inicia_BI
-    t = .5d0
+    t = 1.5d0
     beta = 1.d0/t
     Do i = 1,1000
         Call Metropolis
+        Call Config
     End do
-    Call Config
+    ! Call Config
 End Program Main
