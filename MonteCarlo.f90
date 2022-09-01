@@ -1,10 +1,11 @@
 Module Variaveis
     Implicit None
     Integer :: Ns, Nterma
+    Integer :: Nmc
     Integer, Dimension(:), allocatable :: S
     Real(8), Dimension(:,:), allocatable :: Aij
     Real(8), Dimension(:),allocatable :: Bi, Ei
-    Real(8) :: t, beta , Etot
+    Real(8) :: beta , Etot
 End Module Variaveis
 
 Subroutine LerAij()
@@ -36,11 +37,91 @@ Subroutine Metropolis()
     End do         
 End Subroutine Metropolis 
 
+
 Subroutine MC()
     Use Variaveis
     Implicit None
+    Integer :: i
+    Real(8), Dimension(:), Allocatable :: Energia 
+    Real(8) :: Med, Var, Cv, med2
+    allocate(Energia(Nmc)) 
+
+    Call Termaliza
+    Do i = 1, Nmc
+        Call Metropolis
+        Energia(i) = Etot
+    End do 
+
+    Call Magnet(Nmc,Energia,med,med2,Var)
+    deallocate(Energia)
+
+    Cv = (beta**2/Real(Ns,8))*(med2 - med**2)
+    Write(30,*) 1.d0/Beta, Med, Var, Cv
+    Call Flush()
 
 End Subroutine MC
+
+Subroutine Magnet(n,Data,med,med2,var)
+    Use Variaveis
+    Implicit None
+    integer, intent(in) :: n
+    Real(8), intent(in) :: Data(n)    !! Também não muda valor
+    Real(8) :: med, med2, var
+    Real(8), dimension(:), allocatable :: Data2
+    integer :: i
+    Real(8) :: sp,ep
+
+    med = 0.d0
+    med = sum(data)/Real(N,8)
+    allocate(Data2(n))
+
+    Data2 = Data**2 ! Meu Data é a Energia 
+
+    med2 = 0.d0
+    med2 = sum(Data2)/Real(N,8)
+
+
+    Var = 0.d0
+    ep = 0.d0
+
+    Do i = 1,n
+        sp = data(i) - med
+        ep = ep + sp
+        Var = Var + Sp*Sp
+    End Do
+    
+    Var = (Var - ep**2/Real(N,8))/Real(N-1,8)
+    return
+
+End Subroutine Magnet
+
+Subroutine Temperatura()
+    Use Variaveis
+    Implicit None
+    Integer :: i
+    Integer :: nt = 50
+    Real(8), dimension(:), allocatable :: T
+    Real(8) :: Tf = 0.01d0, Ti = 2.d0, dT
+    
+    dT = (Tf - Ti)/Real(nt,8)
+
+    Allocate(T(nt))
+
+    Do i = 1,nt
+        T(i) =  Ti + (i-1)*dT
+    End Do
+
+    Open(30,file = 'Emed.dat') 
+
+    Do i = 1, Nt
+        Beta = 1.d0/T(i)
+        Print*, beta
+        Call MC
+    End Do   
+
+    Close(30)
+
+End Subroutine Temperatura
 
 Subroutine Termaliza()
     Use Variaveis
@@ -50,7 +131,7 @@ Subroutine Termaliza()
         Call Metropolis
     End Do
     Return    
-End Subroutine 
+End Subroutine Termaliza
 
 
 Subroutine Inicia_BI()
@@ -66,7 +147,7 @@ Subroutine Inicia_BI()
         End Do
         Ei(i) = S(i)*Bi(i) ! Energia em todos os spins  
     End Do
-    Print*, 0.5d0*Sum(Ei)/Real(Ns,8)   ! Multiplicou por 1/2 porque conta duas vezes. (Energia Média por Spin)
+    !Print*, 0.5d0*Sum(Ei)/Real(Ns,8)   ! Multiplicou por 1/2 porque conta duas vezes. (Energia Média por Spin)
 End Subroutine Inicia_BI
 
 Subroutine Update(i,dE)
@@ -112,11 +193,9 @@ Program Main
     Call Srand(Seed)
     Call LerAij
     Call Inicia_BI
-    t = 1.5d0
-    beta = 1.d0/t
-    Do i = 1,1000
-        Call Metropolis
-        Call Config
-    End do
-    ! Call Config
+    Nterma = 10000
+    Nmc = 1000000
+    !Call MC
+    !Call Config
+    Call Temperatura
 End Program Main
