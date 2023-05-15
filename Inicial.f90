@@ -55,7 +55,8 @@ Subroutine CalcCampo()
     End Do
     Close(20)        
         
-End Subroutine CalcCampo    
+End Subroutine CalcCampo
+    
 Program Main
     Call Inicial
 End Program Main
